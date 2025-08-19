@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>FollowCheck</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+    body{font-family:system-ui;margin:2rem;max-width:560px}
+    input,button{font-size:1rem;padding:.5rem;margin:.25rem 0;width:100%}
+  </style>
+</head>
+<body>
+<h1>FollowCheck</h1>
+<p>Enter details to start the Instagram audit.</p>
+
+<form id="f">
+    <label>Email (where to send report)
+        <input name="email" type="email" required>
+    </label>
+    <label>Username to check (public IG account)
+        <input name="user" required>
+    </label>
+    <label>Follower threshold
+        <input name="threshold" type="number" value="11000" required>
+    </label>
+
+    <!-- Lightweight gate to reduce random spam; verify server-side in n8n -->
+    <input type="hidden" name="token" value="REPLACE_WITH_SHARED_SECRET">
+    <button type="submit">Submit</button>
+</form>
+
+<p id="msg" aria-live="polite"></p>
+
+<script>
+    const endpoint = "https://YOUR-N8N-DOMAIN/webhook/igaudit/submit"; // <-- set your n8n webhook URL
+    const allowedOrigin = location.origin; // your Pages origin
+
+    const f = document.getElementById('f');
+    const msg = document.getElementById('msg');
+
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = "Sending...";
+      const data = Object.fromEntries(new FormData(f).entries());
+      data.threshold = Number(data.threshold||0);
+
+      try {
+        const r = await fetch(endpoint, {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify(data),
+          mode: "cors",
+        });
+        if (!r.ok) throw new Error(await r.text());
+        msg.textContent = "✅ Submitted. You’ll get an email soon.";
+        f.reset();
+      } catch (err) {
+        msg.textContent = "❌ Error: " + err.message;
+      }
+    });
+  </script>
+</body>
+</html>
