@@ -12,6 +12,7 @@
     <label>Email<br><input name="email" type="email" required></label><br><br>
     <label>Username to check<br><input name="user" required></label><br><br>
 <!--    <label>Follower threshold<br><input name="threshold" type="number" value="11000" required></label><br><br>-->
+    <div class="cf-turnstile" data-sitekey="0x4AAAAAAB1g983SL7T6tOqt"></div>
     <button>Submit</button>
 </form>
 <p id="msg"></p>
@@ -22,6 +23,13 @@
     f.addEventListener('submit', async (e) => {
       e.preventDefault();
       const data = Object.fromEntries(new FormData(f).entries());
+      // Get Turnstile token value and add it:
+      const token = document.querySelector('input[name="cf-turnstile-response"]')?.value;
+      if (!token) {
+        msg.textContent = "❌ Please complete the CAPTCHA.";
+        return;
+      }
+      data['cf-turnstile-response'] = token;
       msg.textContent = "Sending...";
       try {
         const r = await fetch(endpoint, {
@@ -36,6 +44,8 @@
         msg.textContent = "❌ Error: " + err.message;
       }
     });
+
   </script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </body>
 </html>
